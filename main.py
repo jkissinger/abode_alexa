@@ -34,8 +34,7 @@ def process_notifications():
         door_name = door_name.replace(" Door", "")
         state = tokenized[len(tokenized) - 1]
         door_state.update_door_state(door_name, state)
-        # FIXME remove the line below
-        announce('The ' + door_name + ' door is ' + state)
+
 
 
 def announce_doors_to_close():
