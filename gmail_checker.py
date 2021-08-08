@@ -8,7 +8,7 @@ from google.oauth2.credentials import Credentials
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
-def main():
+def check_notifications():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
     """
@@ -33,28 +33,21 @@ def main():
     service = build('gmail', 'v1', credentials=creds)
 
     # Call the Gmail API
-    results = service.users().messages().list(maxResults=20, userId='me', q='from:notify@goabode.com is:unread').execute()
+    results = service.users().messages().list(maxResults=50, userId='me', q='from:notify@goabode.com is:unread').execute()
     message_ids = results.get('messages', [])
-
+    notifications = []
     if not message_ids:
         print('No messages found.')
     else:
-        print('messages')
         for message_id in message_ids:
-            print(message_id['id'])
             message = service.users().messages().get(userId='me', id=message_id['id'], format='full').execute()
             payload = message['payload']
             headers = payload['headers']
             for d in headers:
                 if d['name'] == 'Subject':
-                    subject = d['value']
-                    print(subject)
-                    #service.users().messages().trash(userId='me', id=message_id['id']).execute()
-                    tokenized_subject = subject.split(" ")
-                    door_name = tokenized_subject[2:len(tokenized_subject)-1]
-                    door_name = ' '.join(door_name)
-                    door_name = door_name.replace(" Door", "")
-
-                    state = tokenized_subject[len(tokenized_subject)-1]
+                    # To have the oldest at the front of the list, insert at 0 index
+                    notifications.insert(0, d['value'])
+                    service.users().messages().trash(userId='me', id=message_id['id']).execute()
+    return notifications
 
 
