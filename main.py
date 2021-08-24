@@ -1,6 +1,7 @@
 import io
 import json
 import time
+import os
 
 import requests
 
@@ -10,7 +11,7 @@ import options
 
 settings = {}
 
-with io.open('settings.json', "r", encoding="utf-8") as json_file:
+with io.open(os.environ.get('ABODE_ALEXA_SETTINGS'), "r", encoding="utf-8") as json_file:
     settings = json.load(json_file)
 
 
