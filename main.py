@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import time
 import os
 
@@ -9,9 +10,13 @@ import door_state
 import gmail_checker
 import options
 
-settings = {}
+FORMAT = '%(asctime)-15s %(levelname)-10s %(message)s'
+logging.basicConfig(format=FORMAT, filename='abode_alexa.log', level=logging.INFO)
 
-with io.open(os.environ.get('ABODE_ALEXA_SETTINGS'), "r", encoding="utf-8") as json_file:
+settings = {}
+scriptdir = os.path.dirname(os.path.realpath(__file__))
+
+with io.open(scriptdir + '/settings.json', "r", encoding="utf-8") as json_file:
     settings = json.load(json_file)
 
 
@@ -19,16 +24,15 @@ def announce(announcement):
     if options.ANNOUNCEMENTS_ENABLED:
         response = requests.get(settings['announcement_url'] + announcement.replace(' ', '%20'))
         if not response.ok:
-            print(response)
+            logging.error("Announcement response: " + str(response))
     else:
-        print("Would be announcing: " + announcement)
+        logging.debug("Would be announcing: " + announcement)
 
 
 def process_notifications():
     notifications = gmail_checker.check_notifications()
     for notification in notifications:
-        # TODO switch to logging to a file
-        print("Processing: " + notification)
+        logging.debug("Processing: " + notification)
         tokenized = notification.split(" ")
         door_name = tokenized[2:len(tokenized) - 1]
         door_name = ' '.join(door_name)

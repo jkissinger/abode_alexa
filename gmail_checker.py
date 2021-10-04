@@ -1,4 +1,6 @@
 from __future__ import print_function
+
+import logging
 import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -30,14 +32,14 @@ def check_notifications():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
-    service = build('gmail', 'v1', credentials=creds)
+    service = build('gmail', 'v1', cache_discovery=False, credentials=creds)
 
     # Call the Gmail API
     results = service.users().messages().list(maxResults=50, userId='me', q='from:notify@goabode.com is:unread').execute()
     message_ids = results.get('messages', [])
     notifications = []
     if not message_ids:
-        print('No messages found.')
+        logging.debug('No messages found.')
     else:
         for message_id in message_ids:
             message = service.users().messages().get(userId='me', id=message_id['id'], format='full').execute()

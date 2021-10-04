@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from enum import Enum
 
@@ -26,9 +27,9 @@ def update_door_state(door_name, string_state):
         state = State.CLOSED
 
     if door_name in DOOR_STATE:
-        print("updating '" + door_name + "' from " + str(DOOR_STATE[door_name].state) + " to " + str(state))
+        logging.info("updating '" + door_name + "' from " + str(DOOR_STATE[door_name].state) + " to " + str(state))
     else:
-        print("created '" + door_name + "' as " + str(state))
+        logging.info("created '" + door_name + "' as " + str(state))
     DOOR_STATE[door_name] = StateTime(state, datetime.now())
 
 
@@ -46,5 +47,5 @@ def validate_door_states():
                     open_doors.append(name)
                     door.last_warning_timestamp = datetime.now()
     if open_doors:
-        print("Found these doors to be open too long: " + str(open_doors))
+        logging.info("Found these doors to be open too long: " + str(open_doors))
     return open_doors
