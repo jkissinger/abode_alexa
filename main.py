@@ -3,6 +3,8 @@ import json
 import logging
 import time
 import os
+import traceback
+from datetime import datetime
 
 import requests
 
@@ -11,7 +13,7 @@ import gmail_checker
 import options
 
 FORMAT = '%(asctime)-15s %(levelname)-10s %(message)s'
-logging.basicConfig(format=FORMAT, filename='abode_alexa.log', level=logging.INFO)
+logging.basicConfig(format=FORMAT, filename='{:%Y-%m-%d}-abode-alexa.log'.format(datetime.now()), level=logging.INFO)
 
 settings = {}
 scriptdir = os.path.dirname(os.path.realpath(__file__))
@@ -50,6 +52,11 @@ def announce_doors_to_close():
 
 
 while True:
-    process_notifications()
-    announce_doors_to_close()
-    time.sleep(options.NOTIFICATION_CHECK_FREQUENCY)
+    try:
+        process_notifications()
+        announce_doors_to_close()
+        time.sleep(options.NOTIFICATION_CHECK_FREQUENCY)
+    except Exception as err:
+        logging.error("Waiting 5 minutes due to unknown error: {}".format(err))
+        print(traceback.format_exc())
+        time.sleep(300)

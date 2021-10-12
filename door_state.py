@@ -12,6 +12,7 @@ class State(Enum):
     OPEN = 1
     UNKNOWN = 2
 
+
 class StateTime:
     def __init__(self, state, timestamp):
         self.state = state
@@ -20,9 +21,9 @@ class StateTime:
 
 
 def update_door_state(door_name, string_state):
-    state=State.UNKNOWN
-    if string_state=='Opened':
-        state=State.OPEN
+    state = State.UNKNOWN
+    if string_state == 'Opened':
+        state = State.OPEN
     elif string_state == 'Closed':
         state = State.CLOSED
 

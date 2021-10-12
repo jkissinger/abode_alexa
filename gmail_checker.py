@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import logging
 import os.path
+import time
+
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -9,6 +11,27 @@ from google.oauth2.credentials import Credentials
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
+
+
+def fetch_emails(service):
+    # Call the Gmail API
+    results = service.users().messages().list(maxResults=50, userId='me', q='from:notify@goabode.com is:unread').execute()
+    message_ids = results.get('messages', [])
+    notifications = []
+    if not message_ids:
+        logging.debug('No messages found.')
+    else:
+        for message_id in message_ids:
+            message = service.users().messages().get(userId='me', id=message_id['id'], format='full').execute()
+            payload = message['payload']
+            headers = payload['headers']
+            for d in headers:
+                if d['name'] == 'Subject':
+                    # To have the oldest at the front of the list, insert at 0 index
+                    notifications.insert(0, d['value'])
+                    service.users().messages().trash(userId='me', id=message_id['id']).execute()
+    return notifications
+
 
 def check_notifications():
     """Shows basic usage of the Gmail API.
@@ -33,23 +56,7 @@ def check_notifications():
             token.write(creds.to_json())
 
     service = build('gmail', 'v1', cache_discovery=False, credentials=creds)
+    return fetch_emails(service)
 
-    # Call the Gmail API
-    results = service.users().messages().list(maxResults=50, userId='me', q='from:notify@goabode.com is:unread').execute()
-    message_ids = results.get('messages', [])
-    notifications = []
-    if not message_ids:
-        logging.debug('No messages found.')
-    else:
-        for message_id in message_ids:
-            message = service.users().messages().get(userId='me', id=message_id['id'], format='full').execute()
-            payload = message['payload']
-            headers = payload['headers']
-            for d in headers:
-                if d['name'] == 'Subject':
-                    # To have the oldest at the front of the list, insert at 0 index
-                    notifications.insert(0, d['value'])
-                    service.users().messages().trash(userId='me', id=message_id['id']).execute()
-    return notifications
 
 
