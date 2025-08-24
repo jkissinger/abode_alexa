@@ -7,6 +7,7 @@ import traceback
 from datetime import datetime
 
 import requests
+from httplib2 import ServerNotFoundError
 
 import door_state
 import gmail_checker
@@ -34,13 +35,16 @@ def announce(announcement):
 def process_notifications():
     notifications = gmail_checker.check_notifications()
     for notification in notifications:
-        logging.debug("Processing: " + notification)
-        tokenized = notification.split(" ")
-        door_name = tokenized[2:len(tokenized) - 1]
-        door_name = ' '.join(door_name)
-        door_name = door_name.replace(" Door", "")
-        state = tokenized[len(tokenized) - 1]
-        door_state.update_door_state(door_name, state)
+        try:
+            logging.debug("Processing: " + notification)
+            tokenized = notification.split(" ")
+            door_name = tokenized[2:len(tokenized) - 1]
+            door_name = ' '.join(door_name)
+            door_name = door_name.replace(" Door", "")
+            state = tokenized[len(tokenized) - 1]
+            door_state.update_door_state(door_name, state)
+        except Exception as e:
+            logging.error(traceback.format_exc())
 
 
 
@@ -56,6 +60,9 @@ while True:
         process_notifications()
         announce_doors_to_close()
         time.sleep(options.NOTIFICATION_CHECK_FREQUENCY)
+    except ServerNotFoundError as err:
+        logging.warning("Waiting 2 minutes due to ServerNotFound error: {}".format(err))
+        time.sleep(120)
     except Exception as err:
         logging.error("Waiting 5 minutes due to unknown error: {}".format(err))
         print(traceback.format_exc())
